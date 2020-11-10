@@ -70,6 +70,10 @@ fn main() {
     let analysis_threads = packet_analyser::start_analysers(analyser_rx, responder_filter_tx);
 
     std::thread::sleep(std::time::Duration::from_millis(10));
+
+    // ========
+    // PRODUCER
+    // ========
     
     packet_producer::alternating8192_low(analyser_tx, responder_raw_tx);
 

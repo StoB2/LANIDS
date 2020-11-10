@@ -17,8 +17,6 @@ pub struct Closing {
 }
 
 impl Closing{
-    const THRESHOLD: usize = 256;
-
     pub fn new(gpu_compute_set: super::GPUComputeSet, inbox: mpsc::Receiver<(Packet, u8)>, outbox: mpsc::Sender<(Packet, time::SystemTime, u8)>) -> Self {        
         let compute_pipeline = pipeline::ClosingPipeline::new(gpu_compute_set);
 
@@ -48,7 +46,7 @@ impl Closing{
                 }
             }
 
-            if load_queue.len() >= Self::THRESHOLD {
+            if load_queue.len() >= super::THRESHOLD {
                 let mut gpu_workload = Vec::with_capacity(GPU_PARALLEL);
                 while (gpu_workload.len() < GPU_PARALLEL) && !load_queue.is_empty() {
                     gpu_workload.push(load_queue.pop_front().unwrap());

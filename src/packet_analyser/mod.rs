@@ -4,8 +4,13 @@ mod closing;
 use std::sync::mpsc;
 use super::Packet;
 
+// =================
+// ANALYSER SETTINGS
+// =================
+
 const CPU_PARALLEL: usize = 4;
 const GPU_PARALLEL: usize = 1024;
+const THRESHOLD: usize = 256;
 
 pub struct GPUComputeSet{
     pub device: wgpu::Device,
