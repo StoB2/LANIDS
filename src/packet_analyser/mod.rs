@@ -10,7 +10,7 @@ use super::Packet;
 
 const CPU_PARALLEL: usize = 4;
 const GPU_PARALLEL: usize = 1024;
-const THRESHOLD: usize = 256;
+const THRESHOLD: usize = 16;
 
 pub struct GPUComputeSet{
     pub device: wgpu::Device,

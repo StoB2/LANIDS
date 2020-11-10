@@ -77,7 +77,7 @@ fn main() {
     // PRODUCER
     // ========
     
-    packet_producer::time_wack(analyser_tx, responder_raw_tx);
+    packet_producer::ramp_mid(analyser_tx, responder_raw_tx);
 
     // ^^^^^^^^
 
