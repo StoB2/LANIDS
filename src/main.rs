@@ -77,7 +77,9 @@ fn main() {
     // PRODUCER
     // ========
     
-    packet_producer::alternating8192_low(analyser_tx, responder_raw_tx);
+    packet_producer::time_wack(analyser_tx, responder_raw_tx);
+
+    // ^^^^^^^^
 
     for thread in analysis_threads.into_iter() {
         thread.join().unwrap();

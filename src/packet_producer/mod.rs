@@ -49,3 +49,24 @@ pub fn alternating8192_low(analyser_send: mpsc::Sender<Packet>, responder_send: 
         std::thread::sleep(time::Duration::from_nanos(100_000));
     }
 }
+
+pub fn time_wack(analyser_send: mpsc::Sender<Packet>, responder_send: mpsc::Sender<(Packet, time::SystemTime)>) {
+    for id in 0u32..=8192u32 {    
+        let packet = if ((id/32) % 2) == 0 {
+            Packet::intrusive(id)
+        } else if (id % 4) == 0 {
+            Packet::suspicious(id)
+        } else {
+            Packet::benign(id)
+        };
+
+        responder_send.send((packet, time::SystemTime::now())).unwrap();
+        analyser_send.send(packet).unwrap();
+
+        if ((id/32) % 2) == 1 {
+            std::thread::sleep(time::Duration::from_nanos(100_000));
+        } else {
+            std::thread::sleep(time::Duration::from_nanos(1_000));
+        }
+    }
+}
