@@ -71,6 +71,8 @@ fn main() {
 
     std::thread::sleep(std::time::Duration::from_millis(10));
 
+    let start_timer = std::time::SystemTime::now();
+
     // ========
     // PRODUCER
     // ========
@@ -81,5 +83,5 @@ fn main() {
         thread.join().unwrap();
     }
 
-    responder::output_delta(responder_raw_rx, responder_filter_rx);
+    responder::output_delta(responder_raw_rx, responder_filter_rx, start_timer);
 }

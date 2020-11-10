@@ -6,7 +6,7 @@ use std::{
 };
 use super::Packet;
 
-pub fn output_delta(producer: mpsc::Receiver<(Packet, time::SystemTime)>, analyser: mpsc::Receiver<(Packet, time::SystemTime, u8)>) {
+pub fn output_delta(producer: mpsc::Receiver<(Packet, time::SystemTime)>, analyser: mpsc::Receiver<(Packet, time::SystemTime, u8)>, start_timer: time::SystemTime) {
     let mut start_times = producer.try_iter().collect::<Vec<_>>();
     let mut analysis_times = analyser.try_iter().collect::<Vec<_>>();
 
@@ -61,8 +61,9 @@ pub fn output_delta(producer: mpsc::Receiver<(Packet, time::SystemTime)>, analys
 
         let value = end_time.duration_since(start_times[original_index].1).unwrap().as_micros();
 
-        data = format!("{}{},{}\n", data,
+        data = format!("{}{},{},{}\n", data,
             id,
+            start_times[original_index].1.duration_since(start_timer).unwrap().as_micros(),
             path_format(path, value),
         );
     }
