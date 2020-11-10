@@ -1,0 +1,23 @@
+#version 450
+
+#define BYTE_COUNT 4 * 1024
+#define GPU_PARALLEL 1024
+
+layout(local_size_x = 256) in;
+
+layout(set = 0, binding = 0) buffer PacketBuffer {
+    uint[] packets;
+};
+
+layout(set = 0, binding = 1) buffer ResultBuffer {
+    uint[] results;
+};
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    uint result = 0;
+    for(int i = (BYTE_COUNT / 4) / 8; i < (BYTE_COUNT / 4); i++) {
+        result |= uint(sign(packets[(index * (BYTE_COUNT / 4)) + i]));
+    }
+    results[index] = result;
+}
