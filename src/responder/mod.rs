@@ -8,9 +8,22 @@ use super::Packet;
 
 pub fn output_delta(producer: mpsc::Receiver<(Packet, time::SystemTime)>, analyser: mpsc::Receiver<(Packet, time::SystemTime, u8)>) {
     let mut start_times = producer.try_iter().collect::<Vec<_>>();
-    let analysis_times = analyser.try_iter().collect::<Vec<_>>();
+    let mut analysis_times = analyser.try_iter().collect::<Vec<_>>();
 
     start_times.sort_by(|a, b| {
+        let arr = a.0.0;
+        let brr = b.0.0;
+
+        let mut result = Ordering::Equal;
+        let mut byte = 4;
+        while (byte > 0) && (result == Ordering::Equal) {
+            byte -= 1;
+            result = arr[byte].cmp(&brr[byte]);
+        }
+        result
+    });
+
+    analysis_times.sort_by(|a, b| {
         let arr = a.0.0;
         let brr = b.0.0;
 
@@ -46,7 +59,23 @@ pub fn output_delta(producer: mpsc::Receiver<(Packet, time::SystemTime)>, analys
             result
         }).unwrap();
 
-        data = format!("{}{}({}): {:?}\n", data, id, path, end_time.duration_since(start_times[original_index].1).unwrap() );
+        let value = end_time.duration_since(start_times[original_index].1).unwrap().as_micros();
+
+        data = format!("{}{},{}\n", data,
+            id,
+            path_format(path, value),
+        );
     }
-    fs::write("output.txt", data).expect("Unable to write file");
+    fs::write("output.csv", data).expect("Unable to write file");
+}
+
+fn path_format(path: u8, value: u128) -> String {
+    let mut output = String::new();
+    for i in 0..4 {
+        if path == i {
+            output = format!{"{}{}", output, value};
+        }
+        output = format!{"{},", output};
+    }
+    output
 }

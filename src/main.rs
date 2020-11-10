@@ -71,7 +71,7 @@ fn main() {
 
     std::thread::sleep(std::time::Duration::from_millis(10));
     
-    packet_producer::consecutive256(analyser_tx, responder_raw_tx);
+    packet_producer::alternating8192_low(analyser_tx, responder_raw_tx);
 
     for thread in analysis_threads.into_iter() {
         thread.join().unwrap();

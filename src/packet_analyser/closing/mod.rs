@@ -54,18 +54,18 @@ impl Closing{
                     gpu_workload.push(load_queue.pop_front().unwrap());
                 }
                 self.compute_pipeline.scan(gpu_workload, self.outbox.clone());
-            }
-
-            let mut cpu_workload = Vec::with_capacity(CPU_PARALLEL);
-            while (cpu_workload.len() < CPU_PARALLEL) && !load_queue.is_empty() {
-                cpu_workload.push(load_queue.pop_front().unwrap());
-            }
-
-            cpu_workload.into_par_iter().for_each_with(self.outbox.clone(), |s,p| {
-                if Self::cpu_closing(&p.0) {
-                    s.send((p.0, time::SystemTime::now(), p.1)).unwrap();
+            } else {
+                let mut cpu_workload = Vec::with_capacity(CPU_PARALLEL);
+                while (cpu_workload.len() < CPU_PARALLEL) && !load_queue.is_empty() {
+                    cpu_workload.push(load_queue.pop_front().unwrap());
                 }
-            });
+
+                cpu_workload.into_par_iter().for_each_with(self.outbox.clone(), |s,p| {
+                    if Self::cpu_closing(&p.0) {
+                        s.send((p.0, time::SystemTime::now(), p.1)).unwrap();
+                    }
+                });
+            }
         }
     }
 

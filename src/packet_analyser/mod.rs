@@ -5,7 +5,7 @@ use std::sync::mpsc;
 use super::Packet;
 
 const CPU_PARALLEL: usize = 4;
-const GPU_PARALLEL: usize = 256;
+const GPU_PARALLEL: usize = 1024;
 
 pub struct GPUComputeSet{
     pub device: wgpu::Device,
