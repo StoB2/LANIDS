@@ -87,7 +87,7 @@ impl GPUComputeSet {
 
 pub fn start_analysers(
     producer: mpsc::Receiver<Packet>,
-    responder: mpsc::Sender<(Packet, std::time::SystemTime)>,
+    responder: mpsc::Sender<(Packet, std::time::SystemTime, u8)>,
 ) -> Vec<std::thread::JoinHandle<()>> {
     let (closing_tx, closing_rx) = mpsc::channel();
 

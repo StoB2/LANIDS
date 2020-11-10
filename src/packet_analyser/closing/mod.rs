@@ -10,8 +10,8 @@ use crate::Packet;
 use super::{GPU_PARALLEL, CPU_PARALLEL};
 
 pub struct Closing {
-    inbox: mpsc::Receiver<Packet>,
-    outbox: mpsc::Sender<(Packet, time::SystemTime)>,
+    inbox: mpsc::Receiver<(Packet, u8)>,
+    outbox: mpsc::Sender<(Packet, time::SystemTime, u8)>,
 
     compute_pipeline: pipeline::ClosingPipeline,
 }
@@ -19,7 +19,7 @@ pub struct Closing {
 impl Closing{
     const THRESHOLD: usize = 256;
 
-    pub fn new(gpu_compute_set: super::GPUComputeSet, inbox: mpsc::Receiver<Packet>, outbox: mpsc::Sender<(Packet, time::SystemTime)>) -> Self {        
+    pub fn new(gpu_compute_set: super::GPUComputeSet, inbox: mpsc::Receiver<(Packet, u8)>, outbox: mpsc::Sender<(Packet, time::SystemTime, u8)>) -> Self {        
         let compute_pipeline = pipeline::ClosingPipeline::new(gpu_compute_set);
 
         Self{
@@ -62,8 +62,8 @@ impl Closing{
             }
 
             cpu_workload.into_par_iter().for_each_with(self.outbox.clone(), |s,p| {
-                if Self::cpu_closing(&p) {
-                    s.send((p, time::SystemTime::now())).unwrap();
+                if Self::cpu_closing(&p.0) {
+                    s.send((p.0, time::SystemTime::now(), p.1)).unwrap();
                 }
             });
         }
@@ -72,11 +72,9 @@ impl Closing{
     fn cpu_closing(packet: &Packet) -> bool {
         let mut intrusive = false;
 
-        let mut payload = packet.0.to_vec();
+        let payload = packet.0.to_vec();
 
-
-
-        for chunk in (payload.len() / 8)..payload.len() {
+        for chunk in (payload.len() / 4)..payload.len() {
             for bit in 0..8 {
                 intrusive |= (payload[chunk] & crate::BIT_MASKS[bit]) > 0;
             }

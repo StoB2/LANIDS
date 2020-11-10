@@ -16,7 +16,7 @@ layout(set = 0, binding = 1) buffer ResultBuffer {
 void main() {
     uint index = gl_GlobalInvocationID.x;
     uint result = 0;
-    for(int i = (BYTE_COUNT / 4) / 8; i < (BYTE_COUNT / 4); i++) {
+    for(int i = (BYTE_COUNT / 4) / 4; i < (BYTE_COUNT / 4); i++) {
         result |= uint(sign(packets[(index * (BYTE_COUNT / 4)) + i]));
     }
     results[index] = result;

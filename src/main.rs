@@ -28,20 +28,20 @@ impl Packet{
 
     pub fn benign(id: u32) -> Self {
         let mut packet = Packet([0;Packet::BYTE_COUNT]);
-        packet.0[0] = ((id >> 24) & 0xff) as u8;
-        packet.0[1] = ((id >> 16) & 0xff) as u8;
-        packet.0[2] = ((id >> 8) & 0xff) as u8;
-        packet.0[3] = (id & 0xff) as u8;
+        packet.0[0] = (id & 0xff) as u8;
+        packet.0[1] = ((id >> 8) & 0xff) as u8;
+        packet.0[2] = ((id >> 16) & 0xff) as u8;
+        packet.0[3] = ((id >> 24) & 0xff) as u8;
 
         packet
     }
 
     pub fn suspicious(id: u32) -> Self {
         let mut packet = Packet([0;Packet::BYTE_COUNT]);
-        packet.0[0] = ((id >> 24) & 0xff) as u8;
-        packet.0[1] = ((id >> 16) & 0xff) as u8;
-        packet.0[2] = ((id >> 8) & 0xff) as u8;
-        packet.0[3] = (id & 0xff) as u8;
+        packet.0[0] = (id & 0xff) as u8;
+        packet.0[1] = ((id >> 8) & 0xff) as u8;
+        packet.0[2] = ((id >> 16) & 0xff) as u8;
+        packet.0[3] = ((id >> 24) & 0xff) as u8;
 
         packet.0[4] = 0b0000_0001;
 
@@ -50,10 +50,10 @@ impl Packet{
 
     pub fn intrusive(id: u32) -> Self {
         let mut packet = Packet([0;Packet::BYTE_COUNT]);
-        packet.0[0] = ((id >> 24) & 0xff) as u8;
-        packet.0[1] = ((id >> 16) & 0xff) as u8;
-        packet.0[2] = ((id >> 8) & 0xff) as u8;
-        packet.0[3] = (id & 0xff) as u8;
+        packet.0[0] = (id & 0xff) as u8;
+        packet.0[1] = ((id >> 8) & 0xff) as u8;
+        packet.0[2] = ((id >> 16) & 0xff) as u8;
+        packet.0[3] = ((id >> 24) & 0xff) as u8;
 
         packet.0[4] = 0b0000_0001;
         packet.0[Packet::BYTE_COUNT - 1] = 0b1000_0000;

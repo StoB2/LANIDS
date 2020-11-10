@@ -8,7 +8,7 @@ use super::{GPU_PARALLEL, CPU_PARALLEL};
 
 pub struct Prefilter {
     inbox: mpsc::Receiver<Packet>,
-    outbox: mpsc::Sender<Packet>,
+    outbox: mpsc::Sender<(Packet, u8)>,
 
     compute_pipeline: pipeline::PrefilterPipeline,
 }
@@ -16,7 +16,7 @@ pub struct Prefilter {
 impl Prefilter{
     const THRESHOLD: usize = 256;
 
-    pub fn new(gpu_compute_set: super::GPUComputeSet, inbox: mpsc::Receiver<Packet>, outbox: mpsc::Sender<Packet>) -> Self {        
+    pub fn new(gpu_compute_set: super::GPUComputeSet, inbox: mpsc::Receiver<Packet>, outbox: mpsc::Sender<(Packet, u8)>) -> Self {        
         let compute_pipeline = pipeline::PrefilterPipeline::new(gpu_compute_set);
 
         Self{
@@ -60,7 +60,7 @@ impl Prefilter{
 
             cpu_workload.into_par_iter().for_each_with(self.outbox.clone(), |s,p| {
                 if Self::cpu_prefilter(&p) {
-                    s.send(p).unwrap();
+                    s.send((p, 0)).unwrap();
                 }
             });
         }
@@ -69,11 +69,9 @@ impl Prefilter{
     fn cpu_prefilter(packet: &Packet) -> bool {
         let mut suspicious = false;
 
-        let mut payload = packet.0.to_vec();
+        let payload = packet.0.to_vec();
 
-
-
-        for chunk in 4..(payload.len() / 8) {
+        for chunk in 4..(payload.len() / 4) {
             for bit in 0..8 {
                 suspicious |= (payload[chunk] & crate::BIT_MASKS[bit]) > 0;
             }

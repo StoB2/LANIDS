@@ -72,7 +72,7 @@ impl PrefilterPipeline {
         }
     }
 
-    pub fn scan(&self, packets: Vec<Packet>, outbox: mpsc::Sender<Packet>) {
+    pub fn scan(&self, packets: Vec<Packet>, outbox: mpsc::Sender<(Packet, u8)>) {
         use wgpu::util::DeviceExt;
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
@@ -127,7 +127,7 @@ impl PrefilterPipeline {
 
             for bit in 0..packets.len() {
                 if result[bit] {
-                    outbox.send(packets[bit]).unwrap();
+                    outbox.send((packets[bit], 1)).unwrap();
                 }
             }
         }

@@ -75,13 +75,15 @@ impl ClosingPipeline {
         }
     }
 
-    pub fn scan(&self, packets: Vec<Packet>, outbox: mpsc::Sender<(Packet, time::SystemTime)>) {
+    pub fn scan(&self, packets: Vec<(Packet, u8)>, outbox: mpsc::Sender<(Packet, time::SystemTime, u8)>) {
         use wgpu::util::DeviceExt;
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
+        let neat_packets = packets.iter().map(|(p,_cg)| {*p}).collect::<Vec<Packet>>();
+
         let packet_staging_buffer = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("closing_packet_buffer"),
-            contents: bytemuck::cast_slice(&packets),
+            contents: bytemuck::cast_slice(&neat_packets),
             usage: wgpu::BufferUsage::STORAGE
                 | wgpu::BufferUsage::COPY_SRC,
         });
@@ -130,7 +132,7 @@ impl ClosingPipeline {
 
             for bit in 0..packets.len() {
                 if result[bit] {
-                    outbox.send((packets[bit], time::SystemTime::now())).unwrap();
+                    outbox.send((neat_packets[bit], time::SystemTime::now(), packets[bit].1 + 2)).unwrap();
                 }
             }
         }

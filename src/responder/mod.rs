@@ -2,24 +2,51 @@ use std::{
     sync::mpsc,
     time,
     fs,
+    cmp::Ordering,
 };
 use super::Packet;
 
-pub fn output_delta(producer: mpsc::Receiver<(Packet, time::SystemTime)>, analyser: mpsc::Receiver<(Packet, time::SystemTime)>) {
+pub fn output_delta(producer: mpsc::Receiver<(Packet, time::SystemTime)>, analyser: mpsc::Receiver<(Packet, time::SystemTime, u8)>) {
     let mut start_times = producer.try_iter().collect::<Vec<_>>();
     let analysis_times = analyser.try_iter().collect::<Vec<_>>();
 
-    start_times.sort_by(|a, b| {a.0.0[0].cmp(&b.0.0[0])});
+    start_times.sort_by(|a, b| {
+        let arr = a.0.0;
+        let brr = b.0.0;
+
+        let mut result = Ordering::Equal;
+        let mut byte = 4;
+        while (byte > 0) && (result == Ordering::Equal) {
+            byte -= 1;
+            result = arr[byte].cmp(&brr[byte]);
+        }
+        result
+    });
 
     let mut data = String::new();
 
     for analysed in analysis_times.into_iter() {
-        let (packet, end_time) = analysed;
-        let id = packet.0[0];
+        let (packet, end_time, path) = analysed;
+        let id_bytes = packet.0;
 
-        let original_index = start_times.binary_search_by(|probe| {probe.0.0[0].cmp(&id)}).unwrap();
+        let id = ((id_bytes[0] as u32) & 0x000000ff)
+            | (((id_bytes[1] as u32) <<  8) & 0x0000ff00)
+            | (((id_bytes[2] as u32) << 16) & 0x00ff0000)
+            | (((id_bytes[3] as u32) << 24) & 0xff000000);
 
-        data = format!("{}{}: {:?}\n", data, id, end_time.duration_since(start_times[original_index].1).unwrap() );
+        let original_index = start_times.binary_search_by(|probe| {
+            let arr = probe.0.0;
+    
+            let mut result = Ordering::Equal;
+            let mut byte = 4;
+            while (byte > 0) && (result == Ordering::Equal) {
+                byte -= 1;
+                result = arr[byte].cmp(&id_bytes[byte]);
+            }
+            result
+        }).unwrap();
+
+        data = format!("{}{}({}): {:?}\n", data, id, path, end_time.duration_since(start_times[original_index].1).unwrap() );
     }
     fs::write("output.txt", data).expect("Unable to write file");
 }
